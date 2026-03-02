@@ -94,8 +94,10 @@ export default function VoiceControls({
                 audio: { sampleRate: SAMPLE_RATE, channelCount: 1, echoCancellation: true, noiseSuppression: true }
             })
             audioCtxRef.current = new AudioContext({ sampleRate: SAMPLE_RATE })
-            startMeter(stream)
+            await audioCtxRef.current.resume()
+            console.log("AudioContext active, sample rate:", audioCtxRef.current.sampleRate)
 
+            startMeter(stream)
             const src = audioCtxRef.current.createMediaStreamSource(stream)
             const proc = audioCtxRef.current.createScriptProcessor(CHUNK_SIZE, 1, 1)
             processorRef.current = proc

@@ -29,7 +29,7 @@ from services.gemini_client import get_client
 
 router = APIRouter()
 
-LIVE_MODEL = "gemini-2.5-flash-native-audio-preview-12-2025"
+LIVE_MODEL = "models/gemini-2.5-flash-native-audio-preview-12-2025"
 
 # ═══════════════════════════════════════════════
 # Tool Declarations — Gemini decides when to call
@@ -403,7 +403,10 @@ Current Book Name: {book_context[:150]}
 Current Page Text Context (DO NOT read this text out loud automatically. The student is looking at this page. Just use it to answer their questions):
 {page_text[:2000]}
 
-Be conversational, use the student's name if they give it, and make learning fun!"""
+Be conversational, use the student's name if they give it, and make learning fun!
+
+INITIAL GREETING:
+When the session starts, briefly say something like "Hi there! I'm KlassroomAI. What are we studying today?" or acknowledge the book/page text if available. Just a short, friendly opening."""
 
         # Connect to Gemini Live API
         # Plain dict format for tools (matching official docs exactly)
@@ -527,9 +530,11 @@ Be conversational, use the student's name if they give it, and make learning fun
             "thinking_config": {"thinking_budget": 256},
         }
 
+        print(f"[LIVE] Connecting to Gemini model: {LIVE_MODEL}...")
         async with client.aio.live.connect(
             model=LIVE_MODEL, config=live_config
         ) as session:
+            print("[LIVE] Connected to Gemini Live API.")
 
             async def recv_from_gemini():
                 """Listen for Gemini responses — audio, text, or tool calls."""
@@ -581,6 +586,7 @@ Be conversational, use the student's name if they give it, and make learning fun
                                             "role": "ai",
                                             "text": part.text,
                                         })
+                                        print(f"[LIVE] Gemini Transcript (Part): {part.text}")
 
                             # Output audio transcription (what the AI is saying in text)
                             if hasattr(response.server_content, 'output_transcription') and response.server_content.output_transcription:
@@ -601,20 +607,25 @@ Be conversational, use the student's name if they give it, and make learning fun
                                         "role": "user",
                                         "text": text,
                                     })
+                                    print(f"[LIVE] Student Transcript: {text}")
 
                             if response.server_content.turn_complete:
                                 await ws.send_json({"type": "turn_complete"})
+                                print("[LIVE] Gemini: Turn Complete")
                             
                             if response.server_content.interrupted:
                                 await ws.send_json({"type": "interrupted"})
+                                print("[LIVE] Gemini: Interrupted")
 
                 except Exception as e:
                     await ws.send_json({"type": "error", "message": str(e)})
 
             # Start receiving from Gemini in background
+            print("[LIVE] Starting background receiver task...")
             recv_task = asyncio.create_task(recv_from_gemini())
 
             # Forward client messages to Gemini
+            print("[LIVE] Entering bridge loop — waiting for student audio/text...")
             try:
                 while True:
                     msg = await ws.receive()
@@ -629,11 +640,17 @@ Be conversational, use the student's name if they give it, and make learning fun
 
                         if msg_type == 0x00:
                             # Audio from mic (PCM 16kHz)
+                            # Log every 50 packets to avoid spam
+                            if not hasattr(ws, '_pcm_count'): ws._pcm_count = 0
+                            ws._pcm_count += 1
+                            if ws._pcm_count % 50 == 0:
+                                print(f"[LIVE] Forwarding audio to Gemini (chunk {ws._pcm_count}, {len(payload)} bytes)")
+                            
                             await session.send_realtime_input(
                                 audio={"data": payload, "mime_type": "audio/pcm;rate=16000"}
                             )
                         elif msg_type == 0x10:
-                            # JPEG frame from camera/screen
+                            print(f"[LIVE] Forwarding video frame to Gemini ({len(payload)} bytes)")
                             await session.send_realtime_input(
                                 video={"data": payload, "mime_type": "image/jpeg"}
                             )
