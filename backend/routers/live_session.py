@@ -650,9 +650,10 @@ Be conversational, use the student's name if they give it, and make learning fun
                                 turns={"parts": [{"text": f"[Context update] Student is now on: {data.get('text', '')}"}]}
                             )
                         elif data.get("type") == "client_interruption":
-                            # The frontend already muted local audio playback.
-                            # We let Gemini's native Server VAD detect the user's audio stream and naturally switch turns without crashing the SDK.
-                            pass
+                            # Explicitly halt the server's generation by sending an empty turn list
+                            await session.send_client_content(turns=[], turn_complete=False)
+                            # Echo the interruption signal back to the client to lock onto the new turn
+                            await ws.send_json({"type": "interrupted"})
 
             except WebSocketDisconnect:
                 pass
