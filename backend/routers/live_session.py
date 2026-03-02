@@ -378,14 +378,15 @@ async def live_session(ws: WebSocket):
 
         system_prompt = f"""You are KlassroomAI, an expert {subject} tutor for Grade {grade} students.
 You speak in {language}. You are warm, encouraging, and adapt to the student's level.
+You support: English, Spanish, German, Hindi, Urdu, and Arabic. Match the student's language.
 
-Your teaching approach:
-- Give FULL, COMPLETE explanations — never stop mid-thought
+IMPORTANT CONVERSATION RULES:
+- Keep responses SHORT and conversational (2-3 sentences at a time)
+- Pause frequently to let the student respond or ask questions
+- Do NOT give long monologues — break explanations into small chunks
+- After each chunk, ask "Does that make sense?" or "Want me to continue?"
 - Use simple analogies and real-world examples
-- Break complex topics into bite-sized steps
-- Ask the student questions to check understanding
-- Be conversational and make learning fun
-- When explaining a concept, cover it thoroughly before moving on
+- Make learning fun and interactive
 
 You have tools available. USE THEM when appropriate:
 - generate_quiz: Quiz the student after explaining a topic
@@ -522,6 +523,9 @@ Be conversational, use the student's name if they give it, and make learning fun
             "response_modalities": ["AUDIO"],
             "system_instruction": system_prompt,
             "tools": live_tools,
+            "output_audio_transcription": {},
+            "input_audio_transcription": {},
+            "thinking_config": {"thinking_budget": 256},
         }
 
         async with client.aio.live.connect(
@@ -567,7 +571,7 @@ Be conversational, use the student's name if they give it, and make learning fun
                             header = bytes([0x01])
                             await ws.send_bytes(header + response.data)
 
-                        # Server content (text, turn complete)
+                        # Server content (text, turn complete, transcriptions)
                         if response.server_content:
                             model_turn = response.server_content.model_turn
                             if model_turn:
@@ -578,6 +582,26 @@ Be conversational, use the student's name if they give it, and make learning fun
                                             "role": "ai",
                                             "text": part.text,
                                         })
+
+                            # Output audio transcription (what the AI is saying in text)
+                            if hasattr(response.server_content, 'output_transcription') and response.server_content.output_transcription:
+                                text = response.server_content.output_transcription.text
+                                if text and text.strip():
+                                    await ws.send_json({
+                                        "type": "transcript",
+                                        "role": "ai",
+                                        "text": text,
+                                    })
+
+                            # Input audio transcription (what the user is saying)
+                            if hasattr(response.server_content, 'input_transcription') and response.server_content.input_transcription:
+                                text = response.server_content.input_transcription.text
+                                if text and text.strip():
+                                    await ws.send_json({
+                                        "type": "transcript",
+                                        "role": "user",
+                                        "text": text,
+                                    })
 
                             if response.server_content.turn_complete:
                                 await ws.send_json({"type": "turn_complete"})
