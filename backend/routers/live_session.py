@@ -650,6 +650,11 @@ Be conversational, use the student's name if they give it, and make learning fun
                             await session.send_client_content(
                                 turns={"parts": [{"text": f"[Context update] Student is now on: {data.get('text', '')}"}]}
                             )
+                        elif data.get("type") == "client_interruption":
+                            await session.send_client_content(
+                                turns={"parts": [{"text": "\n"}]},
+                                turn_complete=True
+                            )
 
             except WebSocketDisconnect:
                 pass

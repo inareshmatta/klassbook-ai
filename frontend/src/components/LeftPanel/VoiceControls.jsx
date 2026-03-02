@@ -90,9 +90,33 @@ export default function VoiceControls({
             const proc = audioCtxRef.current.createScriptProcessor(CHUNK_SIZE, 1, 1)
             processorRef.current = proc
 
+            let loudFrames = 0
+            const VAD_THRESHOLD = 0.03 // Adjust threshold based on typical mic noise
+
             proc.onaudioprocess = (e) => {
                 if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return
                 const f32 = e.inputBuffer.getChannelData(0)
+
+                // Check for barge-in
+                if (settings.bargeIn && activeSourcesRef.current.length > 0) {
+                    let sum = 0;
+                    for (let i = 0; i < f32.length; i++) sum += Math.abs(f32[i]);
+                    const avg = sum / f32.length;
+
+                    if (avg > VAD_THRESHOLD) {
+                        loudFrames++;
+                        if (loudFrames > 2) {
+                            stopAudio()
+                            isInterruptedRef.current = true
+                            setTimeout(() => { isInterruptedRef.current = false }, 1000)
+                            wsRef.current.send(JSON.stringify({ type: "client_interruption" }))
+                            loudFrames = 0
+                        }
+                    } else {
+                        loudFrames = 0;
+                    }
+                }
+
                 const i16 = new Int16Array(f32.length)
                 for (let i = 0; i < f32.length; i++) i16[i] = Math.max(-32768, Math.min(32767, f32[i] * 32768))
                 const frame = new Uint8Array(i16.buffer.byteLength + 1)
