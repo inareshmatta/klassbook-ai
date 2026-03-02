@@ -6,10 +6,14 @@ import RightPanel from './components/RightPanel/RightPanel'
 import VisualPanel from './components/VisualPanel/VisualPanel'
 import AssessmentPanel from './components/AssessmentPanel/AssessmentPanel'
 import CurriculumPlanner from './components/CurriculumPlanner/CurriculumPlanner'
+import LandingPage from './components/LandingPage/LandingPage'
 import TopBar from './components/TopBar'
 import './App.css'
 
 export default function App() {
+  // Landing page state
+  const [hasEntered, setHasEntered] = useState(false)
+
   // Session state
   const [session, setSession] = useState({
     isLive: false,
