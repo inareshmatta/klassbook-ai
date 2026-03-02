@@ -358,6 +358,13 @@ async def live_session(ws: WebSocket):
     """
     await ws.accept()
     api_key = os.getenv("GEMINI_API_KEY", "")
+    print(f"[LIVE] API key present: {bool(api_key)}, prefix: {api_key[:10]}..." if api_key else "[LIVE] WARNING: No API key found!")
+    
+    if not api_key:
+        await ws.send_json({"type": "error", "message": "GEMINI_API_KEY not set on server"})
+        await ws.close(code=1008, reason="API key not configured")
+        return
+    
     client = get_client()
 
     try:

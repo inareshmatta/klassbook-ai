@@ -49,7 +49,9 @@ export default function VoiceControls({
 
         let ws
         try {
-            ws = new WebSocket('ws://localhost:8080/ws/live')
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+            const wsUrl = `${protocol}//${window.location.host}/ws/live`
+            ws = new WebSocket(wsUrl)
         } catch (e) {
             appendTranscript('system', '❌ Cannot connect. Start backend: cd backend && uvicorn main:app --port 8080')
             return
