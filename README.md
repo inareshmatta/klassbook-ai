@@ -275,6 +275,45 @@ npm run dev
 
 ---
 
+## 🧪 Reproducible Testing Instructions
+
+After spinning up the app, here's how judges can test every feature:
+
+### Test 1: Upload a PDF & Interactive Words
+1. Open [http://localhost:5173](http://localhost:5173) in Chrome
+2. Drag any PDF into the upload area on the left panel
+3. **Click any word** on the rendered page → a dictionary tooltip appears with pronunciation, etymology, and definition
+4. Click **🔖 Save** → the word appears in the **Knowledge Vault** (right panel)
+5. **Highlight a multi-word phrase** → the same tooltip appears for the entire selection
+
+### Test 2: Voice Tutor (Real-time Conversation)
+1. With a PDF loaded, click **🎙 Start Tutor** in the left panel
+2. Allow microphone access when prompted
+3. **Speak**: *"Can you explain what's on this page?"*
+4. The AI should respond **within 1-2 seconds** with spoken audio
+5. **Test barge-in**: while the AI is speaking, interrupt — it should stop and respond to your interruption
+
+### Test 3: Visual Explainer
+1. Click any word on the PDF → dictionary tooltip appears
+2. Click **🎨 Visualize** → the Visual Explainer panel opens with the word pre-filled
+3. Click **Generate** → an AI-generated visual should appear
+
+### Test 4: Explain Page & Diagrams (Vision)
+1. Navigate to a page with diagrams/charts in the PDF
+2. Click **👁️ Explain Page & Diagrams** button
+3. The AI should verbally describe the visual content on the page
+
+### Test 5: Curriculum Planner
+1. Click **📅 Study Planner** in the left panel
+2. Set an exam date and daily study hours → click **Generate Plan**
+3. A week-by-week schedule appears; check off tasks to track progress
+
+### Test 6: Cloud Deployment
+1. Visit [https://klassroom-api-vav7hon2rq-uc.a.run.app/health](https://klassroom-api-vav7hon2rq-uc.a.run.app/health) → Expected: `{"status":"ok","service":"KlassroomAI"}`
+2. Visit [https://klassroom-api-vav7hon2rq-uc.a.run.app](https://klassroom-api-vav7hon2rq-uc.a.run.app) → Full app served from Cloud Run
+
+---
+
 ## ☁️ Cloud Deployment Proof
 
 | Item | Link |
