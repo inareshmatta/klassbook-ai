@@ -377,8 +377,8 @@ async def live_session(ws: WebSocket):
         page_text = init_data.get("page_text", "")
 
         system_prompt = f"""You are KlassroomAI, an expert {subject} tutor for Grade {grade} students.
-You speak in {language}. You are warm, encouraging, and adapt to the student's level.
-You support: English, Spanish, German, Hindi, Urdu, and Arabic. Match the student's language.
+You MUST ONLY speak in {language}.
+If the student speaks a different language, reply in {language} and remind them to select their preferred language in the Settings menu on the left panel.
 
 IMPORTANT CONVERSATION RULES:
 - Keep responses SHORT and conversational (2-3 sentences at a time)
