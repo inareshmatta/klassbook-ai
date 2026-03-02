@@ -17,6 +17,7 @@ export default function VoiceControls({
     const [micLevel, setMicLevel] = useState(0)
     const analyserRef = useRef(null)
     const isInterruptedRef = useRef(false)
+    const interruptionTimeoutRef = useRef(null)
 
     // Refs for volatile state to prevent closure staleness without triggering re-renders
     const settingsRef = useRef(settings)
@@ -117,7 +118,11 @@ export default function VoiceControls({
                         if (loudFrames > 2) {
                             stopAudio()
                             isInterruptedRef.current = true
-                            setTimeout(() => { isInterruptedRef.current = false }, 1000)
+
+                            // Safety fallback: if Server VAD misses the interruption, reset after 1500ms
+                            clearTimeout(interruptionTimeoutRef.current)
+                            interruptionTimeoutRef.current = setTimeout(() => { isInterruptedRef.current = false }, 1500)
+
                             wsRef.current.send(JSON.stringify({ type: "client_interruption" }))
                             loudFrames = 0
                         }
@@ -208,15 +213,15 @@ export default function VoiceControls({
                 }
 
                 else if (msg.type === 'turn_complete') {
-                    // Don't auto-switch unless audio is done
-                    // The onended handlers will clean up sources
+                    // Turn finished naturally
+                    isInterruptedRef.current = false
+                    clearTimeout(interruptionTimeoutRef.current)
                 }
 
                 else if (msg.type === 'interrupted') {
-                    stopAudio()
-                    isInterruptedRef.current = true
-                    // Ignore in-flight audio chunks for a short window to let the network clear
-                    setTimeout(() => { isInterruptedRef.current = false }, 1000)
+                    // Server has formally dropped the old generation. The next chunks are NEW.
+                    isInterruptedRef.current = false
+                    clearTimeout(interruptionTimeoutRef.current)
                 }
 
                 else if (msg.type === 'error') {
