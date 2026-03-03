@@ -52,19 +52,21 @@ At its core, KlassroomAI features a **voice-first proactive tutor** powered by t
 | **Secure by Design** | API key never leaves the backend — frontend uses short-lived, single-use ephemeral tokens |
 
 ### 🤖 Autonomous Agentic Behaviors
-The AI tutor isn't just a chatbot — it acts as an **autonomous orchestration agent** that decides when to use its tools:
+The AI tutor isn't just a chatbot — it acts as an **autonomous orchestration agent** that decides when to use its tools. When a tool is triggered, the corresponding **UI panel auto-opens instantly** with the generated content pre-loaded — the student never has to manually navigate anywhere.
 
 | Tool | Trigger | What Happens |
 |---|---|---|
-| `generate_quiz` | After explaining a topic | A quiz panel slides out with MCQs, True/False, and Fill-in-the-Blank questions |
+| `generate_quiz` | After explaining a topic | **Assessment Panel auto-opens** with pre-loaded MCQs, True/False, and Fill-in-the-Blank questions — quiz starts immediately |
 | `lookup_word` | Student encounters an unfamiliar term | Google Search-grounded dictionary with IPA pronunciation, etymology, and contextual definition |
-| `generate_visual` | Concept needs a picture | Generates infographics, flowcharts, or concept maps via Nano Banana 2 |
+| `generate_visual` | Concept needs a picture | **Visual Canvas auto-opens** with the generated infographic, flowchart, or concept map displayed instantly |
 | `suggest_next_topic` | Student finishes a concept | AI guides them to the next logical topic based on curriculum and prerequisites |
 | `create_bookmark` | Student highlights important text | Content is saved to the Knowledge Vault for revision |
 | `summarize_page` | Page is dense or overwhelming | Generates concise bullet-point summaries of the current textbook page |
 | `explain_like_im_5` | Student says "I still don't get it" | Simplifies concept with everyday analogies a child could understand |
 | `compare_concepts` | Student confuses two similar terms | Side-by-side comparison showing similarities, differences, and a summary |
 | `generate_flashcards` | Student finishes a chapter | Creates front/back revision flashcards for spaced repetition study |
+
+> **Smart Tool Responses:** Tool results are split into two streams — the full rich data (quiz JSON, image bytes) goes to the frontend UI, while a lightweight status message goes back to the voice model. This prevents the AI from verbally reading out quiz questions or image descriptions, keeping the conversation natural.
 
 ### 🖼️ Visual Explainer (Nano Banana 2)
 Some concepts are impossible to understand through text or voice alone.
@@ -216,6 +218,7 @@ KlassroomAI/
 | **20-30s audio lag** | Recursive `onended` event-loop queuing on main thread | Refactored to precise `AudioContext.currentTime` scheduling at 24kHz |
 | **PDF text misalignment** | Custom bounding-box detection was slow and inaccurate | Migrated to `pdf.js` native `TextLayer` for pixel-perfect DOM overlay |
 | **Tool calls in direct mode** | Tools need backend API key for Gemini calls | Frontend receives tool calls, POSTs to `/api/execute-tool`, sends results back to Gemini |
+| **Infinite tool-call loop** | Sending full quiz/image JSON back to voice model caused it to re-trigger tools or read data aloud | Split data streams: rich payload → UI, lightweight status → voice model. Reduced audio `timeSlice` from 1s to 250ms for faster input streaming |
 
 ---
 
@@ -223,6 +226,7 @@ KlassroomAI/
 
 - 🎙️ Achieving a truly **human-like, zero-latency conversation loop** that understands the exact visual context of what the student is reading
 - 🤖 Successfully coupling **deep agentic tools** (autonomous quiz generation, visual explainer) into the real-time audio loop without blocking conversation
+- 🔗 **Seamless tool-to-UI integration** — when the voice agent triggers a quiz or visual, the correct panel auto-opens with data pre-loaded. No manual navigation required.
 - ✨ Designing a pristine, **glassmorphic SaaS UI** that feels premium — not a hackathon prototype
 - ☁️ Setting up an **automated GCP Infrastructure-as-Code pipeline** using `cloudbuild.yaml` and Cloud Run
 - 📄 Building **pixel-perfect interactive PDF text** where every word is clickable for instant dictionary lookups
