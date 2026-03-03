@@ -1,0 +1,63 @@
+# Live Conversation Audit — Root Cause Analysis
+
+## 🔴 Critical Issues Found
+
+### 1. Missing `animFrameRef` declaration (Frontend crash on start)
+**File**: [VoiceControls.jsx](file:///d:/KlassroomAI/frontend/src/components/LeftPanel/VoiceControls.jsx)  
+`animFrameRef` is used on lines 45, 242, and 250 but **never declared** with `useRef()`. This causes a `ReferenceError` crash when:
+- The mic meter tries to animate (line 45)
+- The session is closed (line 242, 250)
+
+### 2. Missing transcription config — Gemini doesn't know to send transcriptions
+**File**: [live_session.py](file:///d:/KlassroomAI/backend/routers/live_session.py)  
+The backend reads `input_transcription` and `output_transcription` from responses (lines 569-587), but the `LiveConnectConfig` **never enables them**. Per the [Gemini API docs](https://ai.google.dev/gemini-api/docs/live-guide), you must set:
+- `output_audio_transcription: {}` to get AI speech text  
+- `input_audio_transcription: {}` to get user speech text  
+
+Without these, `response.server_content.output_transcription` and `input_transcription` are **always None**, so the frontend transcript panel stays empty and the user gets no feedback.
+
+### 3. `send_client_content` — `turns` format inconsistencies  
+**File**: [live_session.py](file:///d:/KlassroomAI/backend/routers/live_session.py)  
+- **Line 511**: Uses `turns=[{"parts": [{"text": ...}]}]` (list of dicts without `role`) — works but should have `"role": "user"` for consistency.
+- **Line 639**: Uses `turns={"parts": [{"text": ...}]}` (single dict, not a list) — the SDK expects a list or a string, not a bare dict. This silently fails to send text messages to Gemini.
+- **Line 643**: Same issue.
+
+### 4. No `speech_config` / `voice_config` — selected voice is ignored
+**File**: [live_session.py](file:///d:/KlassroomAI/backend/routers/live_session.py)  
+The frontend sends `voice: settingsRef.current.voice` in the init config (line 84 of VoiceControls), but the backend **ignores it** — the `LiveConnectConfig` (line 497) doesn't include `speech_config` with the selected voice name. Gemini uses its default voice instead.
+
+### 5. No `turn_complete=True` on text messages — Gemini waits indefinitely
+**File**: [live_session.py](file:///d:/KlassroomAI/backend/routers/live_session.py)  
+When user sends text (line 638-640), `turn_complete` is not set, so Gemini thinks the user is still typing and **doesn't respond**. This is why the app feels like it needs manual button clicks — Gemini is waiting for the turn to be marked complete.
+
+### 6. `orbState` never returns to `listening` after AI finishes speaking
+**File**: [VoiceControls.jsx](file:///d:/KlassroomAI/frontend/src/components/LeftPanel/VoiceControls.jsx)  
+On `turn_complete` (line 217-221), the code resets `isInterruptedRef` but **never** sets `orbState` back to `listening`. The orb stays stuck in `speaking` or `thinking` state after the AI finishes.
+
+### 7. `tools` passed as raw dicts instead of SDK types
+**File**: [live_session.py](file:///d:/KlassroomAI/backend/routers/live_session.py)  
+Lines 386-495 define `live_tools` as plain Python dicts. While the SDK may accept this, it's fragile. The `AGENT_TOOLS` (lines 37-198) use proper `types.Tool` objects but are **never used** in the config. There's duplicate tool definition, one of which (the proper one) is dead code.
+
+## 🟡 Secondary Issues
+
+### 8. Frontend audio output sample rate mismatch
+**File**: [VoiceControls.jsx](file:///d:/KlassroomAI/frontend/src/components/LeftPanel/VoiceControls.jsx)  
+Line 165: `ctx.createBuffer(1, f32.length, 24000)` — correctly uses 24kHz for output.  
+But AudioContext (line 96) is created at 16kHz (`sampleRate: SAMPLE_RATE = 16000`). The AudioContext will attempt to resample the 24kHz buffer to fit its 16kHz rate, causing audio distortion.
+
+### 9. `createScriptProcessor` is deprecated
+**File**: [VoiceControls.jsx](file:///d:/KlassroomAI/frontend/src/components/LeftPanel/VoiceControls.jsx)  
+Line 102 uses `createScriptProcessor` — deprecated in the Web Audio API. Should use `AudioWorkletNode` for better performance, though this is not a blocking issue.
+
+## Summary of fixes needed
+
+| # | File | Fix | Impact |
+|---|------|-----|--------|
+| 1 | VoiceControls.jsx | Add `const animFrameRef = useRef(null)` | Crash fix |
+| 2 | live_session.py | Add `output_audio_transcription` + `input_audio_transcription` to config | Transcripts work |
+| 3 | live_session.py | Fix `turns` to always be a list with `role` | Text messages work |
+| 4 | live_session.py | Add `speech_config` with voice name from client | Voice selection works |
+| 5 | live_session.py | Add `turn_complete=True` to text sends | Natural flow |
+| 6 | VoiceControls.jsx | Set `orbState: 'listening'` on `turn_complete` | UI feedback |
+| 7 | live_session.py | Use `AGENT_TOOLS` types objects; remove duplicate | Cleaner code |
+| 8 | VoiceControls.jsx | Create playback AudioContext at 24kHz | Audio quality |

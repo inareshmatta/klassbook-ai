@@ -257,10 +257,8 @@ Be conversational, use the student's name if they give it, and make learning fun
             setSession(s => ({ ...s, isLive: true, orbState: 'listening' }))
             appendTranscript('system', '🎙 Connected — speak to your AI tutor!')
 
-            // Send greeting + page context
-            let greeting = "Hi there! Let's start our session."
-            if (pageText) greeting = `[Page context: ${pageText.slice(0, 1000)}] ${greeting}`
-            geminiSession.sendClientContent({ turns: greeting, turnComplete: true })
+            // Send a short greeting — do NOT dump page text (Gemini reads it aloud)
+            geminiSession.sendClientContent({ turns: "Hi! I just opened my textbook. I'm ready to learn — introduce yourself briefly and ask what I need help with.", turnComplete: true })
 
             // 3. Setup mic
             const stream = await navigator.mediaDevices.getUserMedia({

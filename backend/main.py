@@ -21,7 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(live_session.router)
+# app.include_router(live_session.router)  # Disabled: using client-to-server now
 app.include_router(vision.router)
 app.include_router(visual_gen.router)
 app.include_router(upload.router)
