@@ -137,11 +137,9 @@ Be conversational, use the student's name if they give it, and make learning fun
 
         const config = {
             systemInstruction: { parts: [{ text: systemInstruction }] },
-            generationConfig: {
-                responseModalities: ["AUDIO"],
-                speechConfig: {
-                    voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } }
-                }
+            responseModalities: ["AUDIO"],
+            speechConfig: {
+                voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } }
             },
             tools: tools,
         }
@@ -257,8 +255,8 @@ Be conversational, use the student's name if they give it, and make learning fun
             setSession(s => ({ ...s, isLive: true, orbState: 'listening' }))
             appendTranscript('system', '🎙 Connected — speak to your AI tutor!')
 
-            // Send a short greeting using the official send() method
-            geminiSession.send({ parts: [{ text: "Hi! I just opened my textbook. I'm ready to learn — introduce yourself briefly and ask what I need help with." }], endOfTurn: true })
+            // Send a short greeting utilizing the JS SDK `sendClientContent` method explicitly
+            geminiSession.sendClientContent({ turns: "Hi! I just opened my textbook. I'm ready to learn — introduce yourself briefly and ask what I need help with.", turnComplete: true })
 
             // 3. Setup mic
             const stream = await navigator.mediaDevices.getUserMedia({
@@ -287,9 +285,12 @@ Be conversational, use the student's name if they give it, and make learning fun
                 for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i])
                 const b64 = btoa(binary)
 
-                sessionRef.current.send({
-                    mimeType: `audio/pcm;rate=${SEND_SAMPLE_RATE}`,
-                    data: b64
+                // Pass the correct parameter object for LiveSendRealtimeInputParameters
+                sessionRef.current.sendRealtimeInput({
+                    audio: {
+                        mimeType: `audio/pcm;rate=${SEND_SAMPLE_RATE}`,
+                        data: b64
+                    }
                 })
             }
             src.connect(proc)
