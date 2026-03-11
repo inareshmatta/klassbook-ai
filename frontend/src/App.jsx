@@ -139,6 +139,11 @@ export default function App() {
         // Open the assessment panel when a quiz or flashcards are generated
         setAssessmentData(result)
         setAssessmentOpen(true)
+      } else if (tool === 'lookup_word') {
+        // Dispatch a custom event so CenterCanvas can show the tooltip
+        window.dispatchEvent(new CustomEvent('voice-lookup-word', {
+          detail: { word: args?.word || '', definition: result?.definition || result }
+        }))
       }
     }
 

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import BookRenderer from './BookRenderer'
 import AIPresenceOrb from './AIPresenceOrb'
 import WordTooltip from './WordTooltip'
@@ -14,6 +14,21 @@ export default function CenterCanvas({
     const [tooltip, setTooltip] = useState(null)
     const [analyzing, setAnalyzing] = useState(false)
     const lastAnalyzedPage = useRef(null)
+
+    // Listen for voice-triggered word lookups
+    useEffect(() => {
+        const handleVoiceLookup = (e) => {
+            const { word, definition } = e.detail
+            if (!word) return
+            // Position the tooltip in the center of the canvas
+            const rect = containerRef.current?.getBoundingClientRect()
+            const x = rect ? rect.left + rect.width / 2 - 150 : window.innerWidth / 2 - 150
+            const y = rect ? rect.top + rect.height / 3 : window.innerHeight / 3
+            setTooltip({ word, x, y, definition, loading: false })
+        }
+        window.addEventListener('voice-lookup-word', handleVoiceLookup)
+        return () => window.removeEventListener('voice-lookup-word', handleVoiceLookup)
+    }, [])
 
     // Called when BookRenderer renders a page
     const onPageRendered = useCallback(async (blob, canvasW, canvasH, pageText) => {
