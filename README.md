@@ -18,7 +18,7 @@
 
   <br/>
 
-  [🌐 Live Demo](https://klassroom-api-vav7hon2rq-uc.a.run.app) · [📖 Docs](#how-we-built-it) · [🚀 Quick Start](#-spin-up-instructions)
+  [🌐 Live Demo](https://klassbook-ai-kygarr5jkq-uc.a.run.app) · [📖 Docs](#how-we-built-it) · [🚀 Quick Start](#-spin-up-instructions)
 
 </div>
 
@@ -325,8 +325,8 @@ After spinning up the app, here's how judges can test every feature:
 3. A week-by-week schedule appears; check off tasks to track progress
 
 ### Test 6: Cloud Deployment
-1. Visit [https://klassroom-api-vav7hon2rq-uc.a.run.app/health](https://klassroom-api-vav7hon2rq-uc.a.run.app/health) → Expected: `{"status":"ok","service":"Klassbook AI"}`
-2. Visit [https://klassroom-api-vav7hon2rq-uc.a.run.app](https://klassroom-api-vav7hon2rq-uc.a.run.app) → Full app served from Cloud Run
+1. Visit [https://klassbook-ai-kygarr5jkq-uc.a.run.app/health](https://klassbook-ai-kygarr5jkq-uc.a.run.app/health) → Expected: `{"status":"ok","service":"Klassbook AI"}`
+2. Visit [https://klassbook-ai-kygarr5jkq-uc.a.run.app](https://klassbook-ai-kygarr5jkq-uc.a.run.app) → Full app served from Cloud Run
 
 ---
 
@@ -334,8 +334,8 @@ After spinning up the app, here's how judges can test every feature:
 
 | Item | Link |
 |---|---|
-| **Live App** | [https://klassroom-api-vav7hon2rq-uc.a.run.app](https://klassroom-api-vav7hon2rq-uc.a.run.app) |
-| **Health Check** | [/health](https://klassroom-api-vav7hon2rq-uc.a.run.app/health) |
+| **Live App** | [https://klassbook-ai-kygarr5jkq-uc.a.run.app](https://klassbook-ai-kygarr5jkq-uc.a.run.app) |
+| **Health Check** | [/health](https://klassbook-ai-kygarr5jkq-uc.a.run.app/health) |
 | **Infrastructure-as-Code** | [`cloudbuild.yaml`](./cloudbuild.yaml) + [`Dockerfile`](./backend/Dockerfile) |
 | **Google Cloud API Usage** | [`ephemeral_token.py`](https://github.com/inareshmatta/klassroom-ai/blob/main/backend/routers/ephemeral_token.py) — Ephemeral token minting · [`tool_executor.py`](https://github.com/inareshmatta/klassroom-ai/blob/main/backend/routers/tool_executor.py) — Tool execution · [`VoiceControls.jsx`](https://github.com/inareshmatta/klassroom-ai/blob/main/frontend/src/components/LeftPanel/VoiceControls.jsx) — Direct Gemini Live API connection · [`interactions.py`](https://github.com/inareshmatta/klassroom-ai/blob/main/backend/routers/interactions.py) — Agentic tool orchestration |
 | **Cloud Console** | [Cloud Run Dashboard](https://console.cloud.google.com/run/detail/us-central1/klassroom-api?project=alert-nimbus-482707-p6) |

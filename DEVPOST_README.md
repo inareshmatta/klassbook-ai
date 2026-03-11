@@ -2,7 +2,7 @@
 
 > **Transform static textbooks into interactive, multimodal AI learning environments.**
 
-🔗 **Live App:** [https://klassroom-api-vav7hon2rq-uc.a.run.app](https://klassroom-api-vav7hon2rq-uc.a.run.app)
+🔗 **Live App:** [https://klassbook-ai-kygarr5jkq-uc.a.run.app](https://klassbook-ai-kygarr5jkq-uc.a.run.app)
 
 **Built with:** `Python` · `FastAPI` · `React 19` · `Vite 7` · `Gemini 2.5 Flash Native Audio` · `Gemini 3 Flash` · `Gemini Vision` · `Google Search Grounding` · `@google/genai SDK` · `Ephemeral Tokens` · `PDF.js` · `Framer Motion` · `Docker` · `Google Cloud Run`
 
@@ -174,7 +174,7 @@ Our system is a decoupled **React Frontend** and **FastAPI Python Backend**. The
 
 ## 🧪 Reproducible Testing Instructions
 
-Visit the live app at **[https://klassroom-api-vav7hon2rq-uc.a.run.app](https://klassroom-api-vav7hon2rq-uc.a.run.app)** and follow these steps:
+Visit the live app at **[https://klassbook-ai-kygarr5jkq-uc.a.run.app](https://klassbook-ai-kygarr5jkq-uc.a.run.app)** and follow these steps:
 
 ### Test 1: Upload a PDF & Interactive Words
 1. Open the live app in Chrome
@@ -206,7 +206,7 @@ Visit the live app at **[https://klassroom-api-vav7hon2rq-uc.a.run.app](https://
 3. A week-by-week study schedule appears; check off tasks to track progress
 
 ### Test 6: Cloud Health Check
-1. Visit [https://klassroom-api-vav7hon2rq-uc.a.run.app/health](https://klassroom-api-vav7hon2rq-uc.a.run.app/health)
+1. Visit [https://klassbook-ai-kygarr5jkq-uc.a.run.app/health](https://klassbook-ai-kygarr5jkq-uc.a.run.app/health)
 2. Expected response: `{"status":"ok","service":"Klassbook AI"}`
 
 ---
@@ -215,6 +215,6 @@ Visit the live app at **[https://klassroom-api-vav7hon2rq-uc.a.run.app](https://
 
 | Item | Details |
 |---|---|
-| **Live App** | [klassroom-api-vav7hon2rq-uc.a.run.app](https://klassroom-api-vav7hon2rq-uc.a.run.app) |
-| **Health Check** | [/health](https://klassroom-api-vav7hon2rq-uc.a.run.app/health) |
+| **Live App** | [klassbook-ai-kygarr5jkq-uc.a.run.app](https://klassbook-ai-kygarr5jkq-uc.a.run.app) |
+| **Health Check** | [/health](https://klassbook-ai-kygarr5jkq-uc.a.run.app/health) |
 | **Infrastructure-as-Code** | `cloudbuild.yaml` + `Dockerfile` included in repo |
