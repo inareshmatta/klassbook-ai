@@ -224,15 +224,18 @@ Our system is a decoupled **React Frontend** and **FastAPI Python Backend**. The
 
 ## What we learned
 
-📘 The **client-to-server** pattern with ephemeral tokens is both simpler and faster than backend WebSocket proxying
-
-📘 How to orchestrate **multi-model agent handoffs** — using Gemini-3-Flash for orchestration and Native Audio for the real-time voice loop
-
-📘 **WebAudio scheduling** is critical for smooth playback — never rely on `onended` callbacks for real-time audio
-
-📘 Practical experience in **automated cloud deployments** via Google Cloud Run and `cloudbuild.yaml`
-
-📘 The importance of **client-side DOM integration** with `pdf.js` TextLayers for interactive document experiences
+- 📡 **Architectural Pivot (Direct-to-Cloud)**: We initially built a backend WebSocket proxy for the Live API. We learned that the "Double-Hop" (Client -> Backend -> Google) added significant latency and orchestration complexity. Migrating to a **direct client-to-server** connection using **ephemeral tokens** was a massive win, reducing response lag by ~300ms.
+- 🔐 **Zero-Leak Security**: We learned how to securely use the Gemini Live SDK in a frontend SPA. By leveraging the `auth_tokens.create()` server-side API, we kept our master API keys 100% hidden while maintaining the performance of a native direct connection.
+- 🔊 **WebAudio Scheduling > Event Loops**: We learned that relying on standard `onended` events for real-time audio playback causes "jitter" and gaps. Precise time-based scheduling via `AudioContext.currentTime` is the only way to achieve professional-grade 24kHz audio continuity.
+- 📹 **Continuity vs. Snapshot Vision**: We discovered that vision-based features fall into two buckets. **Snapshot Vision** (manual capture) is ideal for "Explanations," while **Continuous Vision** (6s background frames) is required for "Discipline Tracking." Balancing the frequency of these frames is critical for keeping the Multi-modal pipeline stable.
+- 🤖 **Pedagogical UX Design**: We learned that an AI tutor shouldn't just respond; it must **orchestrate**. By splitting data flows (sending rich JSON to the UI but only lightweight status messages to the voice model), we prevented the common "AI reading out JSON" bug, keeping the tutor's persona natural and helpful.
+- 📄 **DOM-Native PDF Interactivity**: We learned that traditional OCR wasn't fast enough for "instant dictionary lookups." By engineering a transparent `TextLayer` overlay using `pdf.js`, we bridged the gap between raw PDF pixels and an interactive, clickable textbook.
+- 🧠 **Vision Posture Tuning**: We learned that Gemini 2.5 Vision is highly sensitive to posture. We had to specifically tune the AI's instructions to distinguish between "looking down to write/study" (positive) and "looking down because eyes are closed/sleeping" (negative).
+- 🔗 **Persistent Knowledge Loops**: We realized that for an AI tutor to be effective, every tool call (quiz, bookmark, visualization) must feed into a unified **Knowledge Vault**. Learning shouldn't be ephemeral; it must be preserved and structured for long-term revision.
+- 🎙️ **VAD & Barge-in Tuning**: We learned that server-side Voice Activity Detection (VAD) is vastly superior for "natural barge-in" than client-side logic. Reducing the input `timeSlice` to 250ms enabled the AI to stop speaking instantly the moment the student interrupted.
+- 📝 **Agentic Instruction Engineering**: We learned that "negative constraints" (e.g., *"Do NOT read tool results aloud"*) are more important than positive ones for maintaining the tutor's human-like persona.
+- 📉 **Jitter Buffer Logic**: We learned to implement a lightweight audio jitter buffer specifically for Native Audio streams, ensuring the tutor's voice remains smooth even during minor network bandwidth fluctuations.
+- 🏗️ **Multi-Model Orchestration**: We learned the power of "model specialization"—using Gemini-2.0-Flash-Native-Audio for the high-frequency interaction loop while delegating complex "Deep Research" sweeps to larger models in the background.
 
 ---
 
@@ -240,11 +243,21 @@ Our system is a decoupled **React Frontend** and **FastAPI Python Backend**. The
 
 🚀 **Multi-student collaborative rooms** — multiple students join the same study session with the AI tutor moderating
 
-🚀 **Long-term Knowledge Graphs** — storing the student's Knowledge Vault across years to predict future struggles
+🚀 **Long-term Knowledge Graphs** — storing the student's Knowledge Vault across years to predict future struggles and generate cross-subject revision maps.
+
+🚀 **👓 Holographic Tutor (AR/VR)** — Porting the Shivy AI Vision engine to AR glasses. The tutor will physically "sit" next to your desk, pointing at diagrams in your real paper textbook.
+
+🚀 **❤️ Biometric Stress Sensing** — Analyzing micro-expressions and pupil dilation via webcam to detect cognitive overload. The AI will sense when you're frustrated and offer a pedagogical pivot or a "breathing break."
+
+🚀 **🤝 Peer-to-Peer AI Knowledge Network** — A decentralized network where students' AI agents "talk" to each other to identify the most effective analogies used by high-performing peers worldwide.
+
+🚀 **🎨 AI Persona "Skins"** — Switch the tutor's persona from a "Strict Scientist" to a "Chill Study Buddy" or a "Historical Figure" (e.g., studying physics with a persona that sounds and thinks like Richard Feynman).
+
+🚀 **🏆 On-Chain Mastery Badges** — Integrating Soulbound Tokens (SBTs) to provide unforgeable proof of chapter mastery for college applications.
+
+🚀 **📊 Multi-language Native Support** — Zero-latency voice tutoring in Hindi, Spanish, Mandarin, and Urdu using native audio cross-lingual weights.
 
 🚀 **Mobile Application** — porting to React Native for studying on the go
-
-🚀 **Multi-language Support** — voice tutoring in Hindi, Spanish, and other languages
 
 🚀 **Analytics Dashboard** — tracking study patterns, weak areas, and improvement over time
 

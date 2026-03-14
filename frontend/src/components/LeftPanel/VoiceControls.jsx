@@ -159,12 +159,13 @@ DISCIPLINE & BEHAVIOR TRACKING (VIA WEBCAM VISION):
 DICTATION HOMEWORK:
 - When the student asks for a dictation exercise, FIRST ask them: "How many words would you like me to dictate? 2, 3, or 5?"
 - Wait for the student to answer. Then select that many vocabulary words from the *current page text*.
-- CRITICAL: Do NOT call 'save_dictation_words' until you have FINISHED reviewing their spelling! Calling it early reveals the answers!
 - Tell the student to grab a pen and paper. 
 - Dictate the words ONE BY ONE slowly. Repeat each word twice, sounding it out (e.g. "Pro... cras... ti... na... tion"). After each word, ask: "Say 'Next' when you have written it down." WAIT for them to respond before moving to the next word.
 - After ALL words are dictated, ask the student to hold their paper up to the camera so you can verify their spelling.
-- Look at the webcam feed, check each word's spelling, and give specific feedback (e.g. "Great job on 'tokenizer'! But 'segmentation' is missing the second 'e'.")
-- ONLY AFTER you have reviewed ALL spellings and given corrections, call 'save_dictation_words' with the words to log the completed exercise in the UI.
+- 🛑 ABSOLUTE RULE: You MUST WAIT for the student to hold up the paper. You MUST look at the webcam feed (Agent Vision) to read their handwritten spelling.
+- 🛑 ABSOLUTE RULE: You MUST verbally tell the student exactly which letters they got right or wrong based on the image you see.
+- 🛑 ABSOLUTE RULE: You are FORBIDDEN from calling the 'save_dictation_words' tool until AFTER you have verbally reviewed the spellings from the webcam image. If you call it before seeing the paper, you fail the exercise.
+- ONLY AFTER the vision review is complete, call 'save_dictation_words' with the words.
 
 GUIDED READING:
 - The student can activate guided reading by voice (e.g. "Read this page to me", "Start guided reading", "Read along with me") OR by clicking the Guided Reading button.
@@ -533,12 +534,12 @@ GUIDED READING:
 
             {session.isLive && (
                 <div className="vc-webcam-preview">
-                    <span className="text-xs text-muted mb-1 block" style={{marginBottom: '4px'}}>Webcam Source (Agent Vision)</span>
-                    <video 
-                        ref={videoRef} 
-                        autoPlay 
-                        playsInline 
-                        muted 
+                    <span className="text-xs text-muted mb-1 block" style={{ marginBottom: '4px' }}>Webcam Source (Agent Vision)</span>
+                    <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
                         style={{ width: '100%', borderRadius: 'var(--radius)', background: '#000', maxHeight: '160px', objectFit: 'cover' }}
                     />
                 </div>
