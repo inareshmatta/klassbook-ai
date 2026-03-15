@@ -296,7 +296,23 @@ GUIDED READING:
                                                 detail: { tool: fc.name, args: fc.args }
                                             }))
 
-                                            // Execute tool on backend (API key stays server-side)
+                                            // Send a simplified status back to Gemini IMMEDIATELY so it doesn't hang
+                                            // waiting for a potentially slow Cloud Run backend response
+                                            functionResponses.push({
+                                                id: fc.id,
+                                                name: fc.name,
+                                                response: {
+                                                    result: "Tool triggered successfully. The UI is now processing it.",
+                                                    instruction: "Acknowledge briefly, but DO NOT wait for the data and DO NOT read the data aloud."
+                                                },
+                                            })
+                                        }
+
+                                        // 1. Send immediate ACK back to Gemini to unblock the conversation loop
+                                        if (gs) gs.sendToolResponse({ functionResponses })
+
+                                        // 2. NOW execute the tools on the backend asynchronously
+                                        for (const fc of functionCalls) {
                                             let toolResult = { error: 'Tool execution failed' }
                                             try {
                                                 const res = await fetch('/api/execute-tool', {
@@ -315,20 +331,7 @@ GUIDED READING:
                                             window.dispatchEvent(new CustomEvent('agent-tool-result', {
                                                 detail: { tool: fc.name, args: fc.args, result: toolResult }
                                             }))
-
-                                            // Send a simplified status back to Gemini so it doesn't try to read the whole quiz/image aloud verbally
-                                            functionResponses.push({
-                                                id: fc.id,
-                                                name: fc.name,
-                                                response: {
-                                                    result: "Success. The tool result is now visible on the user's screen.",
-                                                    instruction: "Acknowledge briefly, but DO NOT read the quiz questions, image descriptions, or flashcards aloud."
-                                                },
-                                            })
                                         }
-
-                                        // Send tool results back to Gemini
-                                        if (gs) gs.sendToolResponse({ functionResponses })
                                     })()
                             }
                         } catch (err) {
@@ -382,21 +385,30 @@ GUIDED READING:
                 videoRef.current.play().catch(e => console.warn('Video play prevented:', e))
             }
 
-            // Start continuous vision loop (every 10 seconds to avoid overloading session)
+            // Start continuous vision loop (every 3 seconds for better dictation responsiveness)
             visionIntervalRef.current = setInterval(() => {
                 if (!sessionRef.current || !videoRef.current) return
                 if (videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA && videoRef.current.videoWidth > 0) {
                     try {
+                        // Enforce max width of 480px to prevent massively uncompressed frames from 
+                        // clogging the WebSocket queue and delaying audio packets (which breaks barge-in)
+                        const MAX_WIDTH = 480
+                        const scale = Math.min(1, MAX_WIDTH / videoRef.current.videoWidth)
+                        const width = videoRef.current.videoWidth * scale
+                        const height = videoRef.current.videoHeight * scale
+
                         const canvas = document.createElement('canvas')
-                        canvas.width = videoRef.current.videoWidth
-                        canvas.height = videoRef.current.videoHeight
+                        canvas.width = width
+                        canvas.height = height
                         const ctx = canvas.getContext('2d')
-                        ctx.drawImage(videoRef.current, 0, 0)
-                        const base64 = canvas.toDataURL('image/jpeg', 0.4).split(',')[1]
+                        ctx.drawImage(videoRef.current, 0, 0, width, height)
+                        
+                        // Extremely low quality JPEG to keep payload under 20KB for instant transmission
+                        const base64 = canvas.toDataURL('image/jpeg', 0.25).split(',')[1]
                         sessionRef.current.sendRealtimeInput({ video: { mimeType: 'image/jpeg', data: base64 } })
                     } catch (e) { console.warn('[LIVE] Webcam frame failed:', e) }
                 }
-            }, 6000)
+            }, 3000)
 
             audioCtxRef.current = new AudioContext({ sampleRate: SEND_SAMPLE_RATE })
             await audioCtxRef.current.resume()
